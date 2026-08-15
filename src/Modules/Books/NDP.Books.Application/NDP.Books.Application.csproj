@@ -1,20 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup>
-    <ProjectReference Include="..\NDP.Books.Domain\NDP.Books.Domain.csproj" />
-    <ProjectReference Include="..\..\Audits\NDP.Audits.Domain\NDP.Audits.Domain.csproj" />
-    <ProjectReference Include="..\..\Hits\NDP.Hits.Domain\NDP.Hits.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="ClosedXML" Version="0.105.1" />
-    <PackageReference Include="MediatR" Version="14.2.0" />
-  </ItemGroup>
-
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NDP.Books.Domain\NDP.Books.Domain.csproj" />
+    <ProjectReference Include="..\..\Audits\NDP.Audits.Domain\NDP.Audits.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="12.2.0" />
+    <PackageReference Include="ClosedXML" Version="0.102.2" />
+  </ItemGroup>
 
 </Project>

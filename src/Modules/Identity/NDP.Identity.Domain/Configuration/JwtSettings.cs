@@ -1,4 +1,4 @@
-﻿namespace NDP.Identity.Presentation.Configuration;
+﻿namespace NDP.Identity.Domain.Configuration;
 
 public class JwtSettings
 {

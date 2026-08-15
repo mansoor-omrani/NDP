@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NDP.Identity.Application;
+using NDP.Identity.Domain.Configuration;
 using NDP.Identity.Infrastructure;
 using NDP.Identity.Presentation.Configuration;
 

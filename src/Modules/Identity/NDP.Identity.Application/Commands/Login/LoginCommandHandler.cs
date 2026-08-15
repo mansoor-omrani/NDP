@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
@@ -7,20 +8,19 @@ using NDP.Audits.Domain.Interfaces;
 using NDP.Identity.Application.Commands.Login;
 using NDP.Identity.Application.DTOs;
 using NDP.Identity.Domain.Interfaces;
-using NDP.Identity.Infrastructure.Services;
 
 namespace NDP.Identity.Application.Commands.Login;
 
 public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto?>
 {
     private readonly IUserRepository _userRepository;
-    private readonly JwtService _jwtService;
+    private readonly IJwtService _jwtService;
     private readonly IAuditService _auditService;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public LoginCommandHandler(
         IUserRepository userRepository,
-        JwtService jwtService,
+        IJwtService jwtService,
         IAuditService auditService,
         IHttpContextAccessor httpContextAccessor)
     {

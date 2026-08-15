@@ -4,20 +4,19 @@ using System.Threading.Tasks;
 using MediatR;
 using NDP.Identity.Application.Commands.ForgotPassword;
 using NDP.Identity.Domain.Interfaces;
-using NDP.Identity.Infrastructure.Services;
 
 namespace NDP.Identity.Application.Commands.ForgotPassword;
 
 public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordCommand, bool>
 {
     private readonly IUserRepository _userRepository;
-    private readonly EmailService _emailService;
-    private readonly SmsService _smsService;
+    private readonly IEmailService _emailService;
+    private readonly ISmsService _smsService;
 
     public ForgotPasswordCommandHandler(
         IUserRepository userRepository,
-        EmailService emailService,
-        SmsService smsService)
+        IEmailService emailService,
+        ISmsService smsService)
     {
         _userRepository = userRepository;
         _emailService = emailService;

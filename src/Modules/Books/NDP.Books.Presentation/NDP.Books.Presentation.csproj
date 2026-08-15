@@ -1,22 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup>
-    <ProjectReference Include="..\NDP.Books.Application\NDP.Books.Application.csproj" />
-    <ProjectReference Include="..\NDP.Books.Infrastructure\NDP.Books.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\Audits\NDP.Audits.Presentation\NDP.Audits.Presentation.csproj" />
-    <ProjectReference Include="..\..\Hits\NDP.Hits.Presentation\NDP.Hits.Presentation.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\NDP.Books.Application\NDP.Books.Application.csproj" />
+		<ProjectReference Include="..\NDP.Books.Infrastructure\NDP.Books.Infrastructure.csproj" />
+		<ProjectReference Include="..\..\Audits\NDP.Audits.Presentation\NDP.Audits.Presentation.csproj" />
+		<ProjectReference Include="..\..\Hits\NDP.Hits.Presentation\NDP.Hits.Presentation.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="10.0.11" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.12" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.11" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Authorization" Version="10.0.11" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.12" />
+		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.11" />
+	</ItemGroup>
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
 
 </Project>

@@ -22,9 +22,9 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<ITokenBlacklistService, TokenBlacklistService>();
-        services.AddScoped<JwtService>();
-        services.AddScoped<EmailService>();
-        services.AddScoped<SmsService>();
+        services.AddScoped<IJwtService, JwtService>();
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<ISmsService, SmsService>();
 
         return services;
     }

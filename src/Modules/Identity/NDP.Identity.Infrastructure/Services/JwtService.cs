@@ -1,15 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using NDP.Identity.Domain.Configuration;
 using NDP.Identity.Domain.Entities;
-using NDP.Identity.Presentation.Configuration;
+using NDP.Identity.Domain.Interfaces;
 
 namespace NDP.Identity.Infrastructure.Services;
 
-public class JwtService
+public class JwtService : IJwtService
 {
     private readonly JwtSettings _jwtSettings;
 
