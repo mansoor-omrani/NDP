@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace NDP.Books.Application.DTOs;
+namespace NDP.Audits.Application.DTOs;
 
 public class PagedResult<T>
 {
