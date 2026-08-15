@@ -1,2 +1,34 @@
 <Solution>
+  <Folder Name="/src/">
+    <Project Path="src/NDP.Api/NDP.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Audits/">
+    <Project Path="src/Modules/Audits/NDP.Audits.Application/NDP.Audits.Application.csproj" />
+    <Project Path="src/Modules/Audits/NDP.Audits.Domain/NDP.Audits.Domain.csproj" />
+    <Project Path="src/Modules/Audits/NDP.Audits.Infrastructure/NDP.Audits.Infrastructure.csproj" />
+    <Project Path="src/Modules/Audits/NDP.Audits.Presentation/NDP.Audits.Presentation.csproj" />
+    <Project Path="src/Modules/Audits/NDP.Audits.Tests/NDP.Audits.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Books/">
+    <Project Path="src/Modules/Books/NDP.Books.Application/NDP.Books.Application.csproj" />
+    <Project Path="src/Modules/Books/NDP.Books.Domain/NDP.Books.Domain.csproj" />
+    <Project Path="src/Modules/Books/NDP.Books.Infrastructure/NDP.Books.Infrastructure.csproj" />
+    <Project Path="src/Modules/Books/NDP.Books.Presentation/NDP.Books.Presentation.csproj" />
+    <Project Path="src/Modules/Books/NDP.Books.Tests/NDP.Books.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Hits/">
+    <Project Path="src/Modules/Hits/NDP.Hits.Application/NDP.Hits.Application.csproj" />
+    <Project Path="src/Modules/Hits/NDP.Hits.Domain/NDP.Hits.Domain.csproj" />
+    <Project Path="src/Modules/Hits/NDP.Hits.Infrastructure/NDP.Hits.Infrastructure.csproj" />
+    <Project Path="src/Modules/Hits/NDP.Hits.Presentation/NDP.Hits.Presentation.csproj" />
+    <Project Path="src/Modules/Hits/NDP.Hits.Tests/NDP.Hits.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Identity/">
+    <Project Path="src/Modules/Identity/NDP.Identity.Application/NDP.Identity.Application.csproj" />
+    <Project Path="src/Modules/Identity/NDP.Identity.Domain/NDP.Identity.Domain.csproj" />
+    <Project Path="src/Modules/Identity/NDP.Identity.Infrastructure/NDP.Identity.Infrastructure.csproj" />
+    <Project Path="src/Modules/Identity/NDP.Identity.Presentation/NDP.Identity.Presentation.csproj" />
+    <Project Path="src/Modules/Identity/NDP.Identity.Tests/NDP.Identity.Tests.csproj" />
+  </Folder>
 </Solution>

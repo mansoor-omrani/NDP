@@ -1,0 +1,6 @@
+@NDP.Api_HostAddress = http://localhost:5119
+
+GET {{NDP.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
