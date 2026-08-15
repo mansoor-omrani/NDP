@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\NDP.Identity.Domain\NDP.Identity.Domain.csproj" />
@@ -13,5 +13,4 @@
   </ItemGroup>
 
 </Project>
-
 
