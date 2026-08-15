@@ -6,6 +6,7 @@
     <LangVersion>latest</LangVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <WarningsAsErrors>false</WarningsAsErrors>
+	<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
 </Project>
