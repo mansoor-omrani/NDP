@@ -126,6 +126,21 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task DeleteAsync(int userId)
+    {
+        // حذف نقش‌های کاربر
+        var userRoles = await _context.UserRoles.Where(ur => ur.UserId == userId).ToListAsync();
+        _context.UserRoles.RemoveRange(userRoles);
+
+        // حذف کاربر
+        var user = await _context.Users.FindAsync(userId);
+        if (user != null)
+        {
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+        }
+    }
+
     public async Task<bool> ExistsAsync(int id)
     {
         return await _context.Users.AnyAsync(u => u.Id == id);

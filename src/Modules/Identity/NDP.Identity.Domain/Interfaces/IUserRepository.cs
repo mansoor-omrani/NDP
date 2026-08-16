@@ -21,5 +21,6 @@ public interface IUserRepository
     Task<IEnumerable<Role>> GetUserRolesAsync(int userId);
     Task AssignRolesAsync(int userId, IEnumerable<int> roleIds);
     Task RemoveAllRolesAsync(int userId);
+    Task DeleteAsync(int userId);
     Task<bool> ExistsAsync(int id);
 }

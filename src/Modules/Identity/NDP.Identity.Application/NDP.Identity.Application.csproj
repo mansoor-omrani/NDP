@@ -3,13 +3,15 @@
   <ItemGroup>
     <ProjectReference Include="..\NDP.Identity.Domain\NDP.Identity.Domain.csproj" />
     <ProjectReference Include="..\..\Audits\NDP.Audits.Domain\NDP.Audits.Domain.csproj" />
+    <ProjectReference Include="..\NDP.Identity.Infrastructure\NDP.Identity.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediatR"  />
-    <PackageReference Include="BCrypt.Net-Next"  />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions"  />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions"  />
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="BCrypt.Net-Next" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
   </ItemGroup>
 
 </Project>

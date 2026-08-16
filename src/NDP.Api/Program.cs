@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using NDP.Api.Data;
 using NDP.Api.Middleware;
 using NDP.Audits.Presentation;
 using NDP.Books.Presentation;
@@ -135,7 +136,6 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = ""; // خالی - نمایش در root
 });
 
-// اضافه کردن redirect از root به swagger
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -149,20 +149,36 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-using (var scope = app.Services.CreateScope())
+// Database initialization with Seeder
+try
 {
-    var dbContexts = new DbContext[]
-    {
-        scope.ServiceProvider.GetRequiredService<NDP.Books.Infrastructure.Persistence.BooksDbContext>(),
-        scope.ServiceProvider.GetRequiredService<NDP.Identity.Infrastructure.Persistence.IdentityDbContext>(),
-        scope.ServiceProvider.GetRequiredService<NDP.Audits.Infrastructure.Persistence.AuditsDbContext>(),
-        scope.ServiceProvider.GetRequiredService<NDP.Hits.Infrastructure.Persistence.HitsDbContext>()
-    };
-
-    foreach (var dbContext in dbContexts)
-    {
-        dbContext.Database.EnsureCreated();
-    }
+    using var scope = app.Services.CreateScope();
+    
+    // ایجاد دیتابیس‌ها
+    var booksDb = scope.ServiceProvider.GetRequiredService<NDP.Books.Infrastructure.Persistence.BooksDbContext>();
+    booksDb.Database.EnsureCreated();
+    
+    var identityDb = scope.ServiceProvider.GetRequiredService<NDP.Identity.Infrastructure.Persistence.IdentityDbContext>();
+    identityDb.Database.EnsureCreated();
+    
+    var auditsDb = scope.ServiceProvider.GetRequiredService<NDP.Audits.Infrastructure.Persistence.AuditsDbContext>();
+    auditsDb.Database.EnsureCreated();
+    
+    var hitsDb = scope.ServiceProvider.GetRequiredService<NDP.Hits.Infrastructure.Persistence.HitsDbContext>();
+    hitsDb.Database.EnsureCreated();
+    
+    Console.WriteLine("Database initialization completed.");
+    Console.WriteLine("Running database seeder...");
+    
+    // اجرای DatabaseSeeder
+    await DatabaseSeeder.SeedAsync(app.Services);
+    
+    Console.WriteLine("Database seeding completed.");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Database initialization error: {ex.Message}");
+    Console.WriteLine($"Stack trace: {ex.StackTrace}");
 }
 
 app.Run();
