@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Mapster;
 using MediatR;
 using NDP.Books.Application.DTOs;
 using NDP.Books.Application.Queries.GetBookById;
@@ -21,22 +22,6 @@ public class GetBookByIdQueryHandler : IRequestHandler<GetBookByIdQuery, BookDto
         var book = await _bookRepository.GetByIdAsync(request.BookId);
         if (book == null) return null;
 
-        return new BookDto
-        {
-            BookId = book.BookId,
-            Title = book.Title,
-            Author = book.Author,
-            Publisher = book.Publisher,
-            PublishedYear = book.PublishedYear,
-            Genre = book.Genre,
-            Photo = book.Photo,
-            Description = book.Description,
-            Url = book.Url,
-            IsDeleted = book.IsDeleted,
-            CreatedBy = book.CreatedBy,
-            CreatedDate = book.CreatedDate,
-            LastModifiedBy = book.LastModifiedBy,
-            LastModifiedDate = book.LastModifiedDate
-        };
+        return book.Adapt<BookDto>();
     }
 }

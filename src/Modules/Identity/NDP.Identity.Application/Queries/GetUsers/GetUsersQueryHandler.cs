@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Mapster;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using NDP.Identity.Application.DTOs;
 using NDP.Identity.Application.Queries.GetUsers;
@@ -45,18 +46,9 @@ public class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, PagedResult<U
                 .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name)
                 .ToListAsync(cancellationToken);
 
-            userDtos.Add(new UserDto
-            {
-                UserId = user.Id,
-                UserName = user.UserName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Avatar = user.Avatar,
-                LastLogin = user.LastLogin,
-                Roles = roles
-            });
+            var userDto = user.Adapt<UserDto>();
+            userDto.Roles = roles;
+            userDtos.Add(userDto);
         }
 
         return new PagedResult<UserDto>

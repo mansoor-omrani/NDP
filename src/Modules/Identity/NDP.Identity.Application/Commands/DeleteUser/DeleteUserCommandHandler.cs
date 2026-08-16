@@ -27,7 +27,6 @@ public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand, bool>
         var user = await _userRepository.GetByIdAsync(request.UserId);
         if (user == null) return false;
 
-        // جلوگیری از حذف admin
         if (user.UserName.ToLower() == "admin")
         {
             return false;

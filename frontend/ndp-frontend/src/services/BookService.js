@@ -45,6 +45,13 @@ const BookService = {
     return axios.patch(`${API_URL}/books/${id}/restore`, {}, {
       headers: { Authorization: `Bearer ${token}` }
     });
+  },
+
+  exportBooksExcel(token) {
+    return axios.get(`${API_URL}/books/export`, {
+      headers: { Authorization: `Bearer ${token}` },
+      responseType: 'blob'
+    });
   }
 };
 

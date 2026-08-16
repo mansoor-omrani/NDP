@@ -20,8 +20,10 @@ public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordComman
         var user = await _userRepository.GetByIdAsync(request.UserId);
         if (user == null) return false;
 
-        // TODO: بررسی پسورد فعلی
-        // if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash)) return false;
+        if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+        {
+            return false;
+        }
 
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
         await _userRepository.UpdatePasswordAsync(request.UserId, passwordHash);

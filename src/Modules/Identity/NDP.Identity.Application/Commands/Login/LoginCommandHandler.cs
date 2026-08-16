@@ -32,20 +32,27 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
 
     public async Task<AuthResponseDto?> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
+        var ip = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+
         var user = await _userRepository.GetByUsernameAsync(request.UserName);
         if (user == null)
         {
-            await LogAuditAsync(null, request.UserName, "Login", "Failed - User not found", "Unknown");
+            await LogAuditAsync(null, request.UserName, "Login", "Failed - User not found", ip);
             return null;
         }
 
-        // TODO: بررسی پسورد با BCrypt
-        // if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
-        // {
-        //     await _userRepository.IncrementAccessFailedCountAsync(user.Id);
-        //     await LogAuditAsync(user.Id, user.UserName, "Login", "Failed - Invalid password", ip);
-        //     return null;
-        // }
+        if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        {
+            await _userRepository.IncrementAccessFailedCountAsync(user.Id);
+            await LogAuditAsync(user.Id, user.UserName, "Login", "Failed - Invalid password", ip);
+            return null;
+        }
+
+        if (user.LockedOutEnabled && user.LockedOutEnd.HasValue && user.LockedOutEnd.Value > DateTime.UtcNow)
+        {
+            await LogAuditAsync(user.Id, user.UserName, "Login", "Failed - Account locked", ip);
+            return null;
+        }
 
         await _userRepository.UpdateLastLoginAsync(user.Id, DateTime.UtcNow);
         await _userRepository.ResetAccessFailedCountAsync(user.Id);
@@ -53,7 +60,6 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
         var roles = await _userRepository.GetUserRolesAsync(user.Id);
         var token = _jwtService.GenerateToken(user, roles);
 
-        var ip = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         await LogAuditAsync(user.Id, user.UserName, "Login", "Success", ip);
 
         return new AuthResponseDto

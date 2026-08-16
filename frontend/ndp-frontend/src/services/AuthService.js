@@ -16,6 +16,15 @@ const AuthService = {
     });
   },
 
+  changePassword(currentPassword, newPassword, token) {
+    return axios.post(`${API_URL}/auth/change-password`, {
+      currentPassword,
+      newPassword
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  },
+
   getToken() {
     return localStorage.getItem('token');
   },
@@ -35,7 +44,6 @@ const AuthService = {
   },
 
   setUser(user) {
-    // اطمینان از ذخیره roles
     const userWithRoles = {
       ...user,
       roles: user.roles || []

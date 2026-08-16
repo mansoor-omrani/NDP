@@ -128,11 +128,9 @@ public class UserRepository : IUserRepository
 
     public async Task DeleteAsync(int userId)
     {
-        // حذف نقش‌های کاربر
         var userRoles = await _context.UserRoles.Where(ur => ur.UserId == userId).ToListAsync();
         _context.UserRoles.RemoveRange(userRoles);
 
-        // حذف کاربر
         var user = await _context.Users.FindAsync(userId);
         if (user != null)
         {

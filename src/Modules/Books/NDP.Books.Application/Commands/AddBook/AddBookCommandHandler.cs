@@ -46,7 +46,6 @@ public class AddBookCommandHandler : IRequestHandler<AddBookCommand, int>
 
         var result = await _bookRepository.AddAsync(book);
 
-        // ثبت audit log
         var ip = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         await _auditService.LogAsync(
             userId: request.CreatedBy,

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Mapster;
 using MediatR;
 using NDP.Audits.Application.DTOs;
 using NDP.Audits.Application.Queries.GetAuditLogs;
@@ -84,18 +85,7 @@ public class GetAuditLogsQueryHandler : IRequestHandler<GetAuditLogsQuery, Paged
         var auditLogs = await _auditLogRepository.GetRangeAsync(skip, request.PageSize, filter, orderBy);
         var totalCount = await _auditLogRepository.CountAsync(filter);
 
-        var auditLogDtos = auditLogs.Select(a => new AuditLogDto
-        {
-            Id = a.Id,
-            AuditDate = a.AuditDate,
-            IP = a.IP,
-            UserId = a.UserId,
-            UserName = a.UserName,
-            EntityId = a.EntityId,
-            EntityName = a.EntityName,
-            Action = a.Action,
-            Changes = a.Changes
-        }).ToList();
+        var auditLogDtos = auditLogs.Adapt<List<AuditLogDto>>();
 
         return new PagedResult<AuditLogDto>
         {

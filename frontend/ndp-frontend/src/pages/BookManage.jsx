@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import BookService from '../services/BookService';
 import AuthService from '../services/AuthService';
 
@@ -7,6 +7,7 @@ const BookManage = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingBook, setEditingBook] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   
   // Toast states
   const [toast, setToast] = useState({
@@ -22,6 +23,7 @@ const BookManage = () => {
   const isOperator = userRoles.includes('Operator');
   const canEdit = isAdmin || isManager || isOperator;
   const canDelete = isAdmin || isManager;
+  const canExport = isAdmin || isManager;
   
   const [formData, setFormData] = useState({
     title: '',
@@ -34,8 +36,6 @@ const BookManage = () => {
     url: ''
   });
 
-  const toastRef = useRef(null);
-
   useEffect(() => {
     loadBooks();
   }, []);
@@ -47,7 +47,6 @@ const BookManage = () => {
       type
     });
     
-    // Auto hide after 3 seconds
     setTimeout(() => {
       setToast({
         show: false,
@@ -64,6 +63,41 @@ const BookManage = () => {
     } catch (err) {
       console.error('Error loading books:', err);
       showToast('Failed to load books.', 'error');
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      setExporting(true);
+      const token = AuthService.getToken();
+      
+      if (!token) {
+        showToast('Please login to export books.', 'error');
+        return;
+      }
+      
+      const response = await BookService.exportBooksExcel(token);
+      
+      // ایجاد لینک دانلود
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // نام فایل با تاریخ
+      const date = new Date().toISOString().split('T')[0];
+      link.setAttribute('download', `books_${date}.xlsx`);
+      
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      showToast('Excel file downloaded successfully!', 'success');
+    } catch (err) {
+      console.error('Error exporting books:', err);
+      showToast('Failed to export books.', 'error');
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -207,11 +241,31 @@ const BookManage = () => {
 
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="text-white fw-bold mb-0">Manage Books</h2>
-        {canEdit && (
-          <button onClick={handleAddNew} className="btn btn-light btn-lg rounded-pill px-4">
-            <span className="me-2">➕</span> Add New Book
-          </button>
-        )}
+        <div className="d-flex gap-2">
+          {canExport && (
+            <button 
+              onClick={handleExportExcel} 
+              className="btn btn-success btn-lg rounded-pill px-4"
+              disabled={exporting}
+            >
+              {exporting ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <span className="me-2">📊</span> Export Excel
+                </>
+              )}
+            </button>
+          )}
+          {canEdit && (
+            <button onClick={handleAddNew} className="btn btn-light btn-lg rounded-pill px-4">
+              <span className="me-2">➕</span> Add New Book
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="card">
@@ -389,7 +443,7 @@ const BookManage = () => {
                       <label className="form-label fw-bold">Genre</label>
                       <select
                         name="genre"
-                        className="form-select"
+                        className="form-control form-select"
                         value={formData.genre}
                         onChange={handleInputChange}
                       >

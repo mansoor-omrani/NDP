@@ -11,7 +11,6 @@ public static class DatabaseSeeder
         using var scope = serviceProvider.CreateScope();
         var identityDbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
 
-        // اطمینان از ایجاد دیتابیس
         await identityDbContext.Database.EnsureCreatedAsync();
 
         // Seed Roles

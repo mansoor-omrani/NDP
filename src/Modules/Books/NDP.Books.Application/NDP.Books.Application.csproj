@@ -10,8 +10,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediatR"  />
-    <PackageReference Include="ClosedXML"  />
+    <PackageReference Include="Mapster" />
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="ClosedXML" />
   </ItemGroup>
 
 </Project>
