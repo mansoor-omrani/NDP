@@ -7,26 +7,45 @@ const BookList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+  const [totalCount, setTotalCount] = useState(0);
+
+  const loadBooks = async (search = '') => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      console.log('Searching with term:', search);
+      
+      const response = await BookService.getBooks(currentPage, pageSize, search);
+      console.log('Books response:', response.data);
+      
+      setBooks(response.data.items || []);
+      setTotalCount(response.data.totalCount || 0);
+      setLoading(false);
+    } catch (err) {
+      setError('Failed to load books. Please check if API is running.');
+      setLoading(false);
+      console.error('Error loading books:', err);
+    }
+  };
 
   useEffect(() => {
     loadBooks();
   }, []);
 
-  const loadBooks = async () => {
-    try {
-      setLoading(true);
-      const response = await BookService.getBooks(1, 12, searchTerm);
-      setBooks(response.data.items || []);
-      setLoading(false);
-    } catch (err) {
-      setError('Failed to load books.');
-      setLoading(false);
-    }
-  };
-
   const handleSearch = (e) => {
     e.preventDefault();
-    loadBooks();
+    console.log('Search term:', searchTerm);
+    setCurrentPage(1);
+    loadBooks(searchTerm);
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setCurrentPage(1);
+    loadBooks('');
   };
 
   if (loading) {
@@ -53,38 +72,60 @@ const BookList = () => {
             className="form-control"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search books..."
+            placeholder="Search books by title, author, or publisher..."
           />
           <button type="submit" className="btn btn-primary">
             🔍 Search
           </button>
+          {searchTerm && (
+            <button type="button" className="btn btn-secondary" onClick={handleClearSearch}>
+              ✖
+            </button>
+          )}
         </div>
       </form>
 
+      {error && (
+        <div className="alert alert-danger" role="alert">
+          ⚠️ {error}
+        </div>
+      )}
+
       {books.length === 0 ? (
         <div className="text-center text-white-50 py-5">
-          <h3>📚 No books found</h3>
+          <div className="display-1 mb-3">📚</div>
+          <h3>No books found</h3>
+          {searchTerm && (
+            <p>No results for "{searchTerm}". Try a different search term.</p>
+          )}
         </div>
       ) : (
-        <div className="row">
-          {books.map((book) => (
-            <div key={book.bookId} className="col-md-6 col-lg-4 col-xl-3 mb-4">
-              <Link to={`/books/${book.bookId}`} className="text-decoration-none">
-                <div className="card h-100 hover-shadow">
-                  <div className="card-body text-center">
-                    <div className="display-4 mb-3">📖</div>
-                    <h5 className="card-title text-dark fw-bold">{book.title}</h5>
-                    <p className="card-text text-muted mb-1">{book.author}</p>
-                    <p className="card-text">
-                      <span className="badge bg-primary me-1">{book.genre || 'General'}</span>
-                      <span className="badge bg-secondary">{book.publishedYear || 'N/A'}</span>
-                    </p>
+        <>
+          <p className="text-white-50 mb-3">
+            Found {totalCount} book{totalCount !== 1 ? 's' : ''}
+            {searchTerm && <> for "{searchTerm}"</>}
+          </p>
+          
+          <div className="row">
+            {books.map((book) => (
+              <div key={book.bookId} className="col-md-6 col-lg-4 col-xl-3 mb-4">
+                <Link to={`/books/${book.bookId}`} className="text-decoration-none">
+                  <div className="card h-100 hover-shadow">
+                    <div className="card-body text-center">
+                      <div className="display-4 mb-3">📖</div>
+                      <h5 className="card-title text-dark fw-bold">{book.title}</h5>
+                      <p className="card-text text-muted mb-1">{book.author}</p>
+                      <p className="card-text">
+                        <span className="badge bg-primary me-1">{book.genre || 'General'}</span>
+                        <span className="badge bg-secondary">{book.publishedYear || 'N/A'}</span>
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            </div>
-          ))}
-        </div>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

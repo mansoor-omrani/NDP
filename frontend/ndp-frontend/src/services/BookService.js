@@ -4,8 +4,12 @@ import API_URL from '../config';
 const BookService = {
   getBooks(page = 1, pageSize = 12, searchTerm = '', includeDeleted = false) {
     const params = { page, pageSize };
-    if (searchTerm) params.searchTerm = searchTerm;
-    if (includeDeleted) params.includeDeleted = true;
+    if (searchTerm && searchTerm.trim() !== '') {
+      params.searchTerm = searchTerm.trim();
+    }
+    if (includeDeleted) {
+      params.includeDeleted = true;
+    }
     return axios.get(`${API_URL}/books`, { params });
   },
 

@@ -7,7 +7,7 @@ const AuditLog = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   
@@ -42,10 +42,7 @@ const AuditLog = () => {
         ...filters
       };
       
-      console.log('Loading audit logs with params:', params);
-      
       const response = await AuditService.getAuditLogs(params, token);
-      console.log('Audit logs response:', response.data);
       
       setAuditLogs(response.data.items || []);
       setTotalCount(response.data.totalCount || 0);
@@ -80,7 +77,6 @@ const AuditLog = () => {
       toDate: ''
     });
     setCurrentPage(1);
-    // بعد از reset دوباره لود کن
     setTimeout(() => {
       loadAuditLogs();
     }, 100);
@@ -136,16 +132,13 @@ const AuditLog = () => {
         </div>
       )}
 
-      {/* Filter Section */}
-      <div className="card mb-4">
-        <div className="card-header bg-light">
-          <h6 className="mb-0">🔍 Filters</h6>
-        </div>
-        <div className="card-body">
+      {/* Filter Section - Compact */}
+      <div className="card mb-3">
+        <div className="card-body py-2">
           <form onSubmit={handleSearch}>
-            <div className="row g-3">
+            <div className="row g-2 align-items-end">
               <div className="col-md-3">
-                <label className="form-label small fw-bold">Username</label>
+                <label className="form-label small mb-1 fw-bold">Username</label>
                 <input
                   type="text"
                   name="userName"
@@ -155,28 +148,28 @@ const AuditLog = () => {
                   placeholder="Filter by username..."
                 />
               </div>
-              <div className="col-md-3">
-                <label className="form-label small fw-bold">Entity Name</label>
+              <div className="col-md-2">
+                <label className="form-label small mb-1 fw-bold">Entity</label>
                 <select
                   name="entityName"
-                  className="form-select form-select-sm"
+                  className="form-control form-control-sm form-select"
                   value={filters.entityName}
                   onChange={handleFilterChange}
                 >
-                  <option value="">All Entities</option>
+                  <option value="">All</option>
                   <option value="Book">Book</option>
                   <option value="User">User</option>
                 </select>
               </div>
               <div className="col-md-2">
-                <label className="form-label small fw-bold">Action</label>
+                <label className="form-label small mb-1 fw-bold">Action</label>
                 <select
                   name="action"
-                  className="form-select form-select-sm"
+                  className="form-control form-control-sm form-select"
                   value={filters.action}
                   onChange={handleFilterChange}
                 >
-                  <option value="">All Actions</option>
+                  <option value="">All</option>
                   <option value="Add">Add</option>
                   <option value="Edit">Edit</option>
                   <option value="SoftDelete">SoftDelete</option>
@@ -191,7 +184,7 @@ const AuditLog = () => {
                 </select>
               </div>
               <div className="col-md-2">
-                <label className="form-label small fw-bold">From Date</label>
+                <label className="form-label small mb-1 fw-bold">From</label>
                 <input
                   type="date"
                   name="fromDate"
@@ -201,7 +194,7 @@ const AuditLog = () => {
                 />
               </div>
               <div className="col-md-2">
-                <label className="form-label small fw-bold">To Date</label>
+                <label className="form-label small mb-1 fw-bold">To</label>
                 <input
                   type="date"
                   name="toDate"
@@ -210,55 +203,51 @@ const AuditLog = () => {
                   onChange={handleFilterChange}
                 />
               </div>
-            </div>
-            <div className="d-flex gap-2 mt-3">
-              <button type="submit" className="btn btn-primary btn-sm">
-                🔍 Apply Filters
-              </button>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={handleReset}>
-                🗑️ Reset
-              </button>
+              <div className="col-md-1">
+                <button type="submit" className="btn btn-primary btn-sm w-100">
+                  🔍
+                </button>
+              </div>
             </div>
           </form>
         </div>
       </div>
 
-      {/* Audit Logs Table */}
+      {/* Audit Logs Table - Condensed */}
       <div className="card">
-        <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <div className="card-header bg-primary text-white py-2 d-flex justify-content-between align-items-center">
           <h6 className="mb-0">Audit Logs</h6>
           <span className="badge bg-light text-dark">
-            Total: {totalCount} records
+            {totalCount} records
           </span>
         </div>
         <div className="card-body p-0">
           <div className="table-responsive">
-            <table className="table table-hover table-striped mb-0">
+            <table className="table table-hover table-sm table-striped mb-0">
               <thead className="table-dark">
                 <tr>
-                  <th className="px-3">#</th>
-                  <th>Date & Time</th>
-                  <th>User</th>
-                  <th>Action</th>
-                  <th>Entity</th>
-                  <th>IP Address</th>
+                  <th className="px-2 py-2">#</th>
+                  <th className="py-2">Date & Time</th>
+                  <th className="py-2">User</th>
+                  <th className="py-2">Action</th>
+                  <th className="py-2">Entity</th>
+                  <th className="py-2">IP</th>
                 </tr>
               </thead>
               <tbody>
                 {auditLogs.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-5 text-muted">
-                      <div className="fs-1 mb-2">📋</div>
-                      No audit logs found.
+                    <td colSpan="6" className="text-center py-4 text-muted">
+                      📋 No audit logs found.
                     </td>
                   </tr>
                 ) : (
                   auditLogs.map((log, index) => (
                     <tr key={log.id}>
-                      <td className="px-3">
+                      <td className="px-2 py-1 text-muted small">
                         {(currentPage - 1) * pageSize + index + 1}
                       </td>
-                      <td>
+                      <td className="py-1 small">
                         <div className="fw-bold">
                           {new Date(log.auditDate).toLocaleDateString()}
                         </div>
@@ -266,19 +255,19 @@ const AuditLog = () => {
                           {new Date(log.auditDate).toLocaleTimeString()}
                         </small>
                       </td>
-                      <td>
-                        <span className="fw-bold">{log.userName || 'Anonymous'}</span>
+                      <td className="py-1">
+                        <span className="fw-bold small">{log.userName || 'Anonymous'}</span>
                       </td>
-                      <td>
-                        <span className={`badge ${getActionBadge(log.action)}`}>
+                      <td className="py-1">
+                        <span className={`badge ${getActionBadge(log.action)}`} style={{ fontSize: '0.7rem' }}>
                           {log.action}
                         </span>
                       </td>
-                      <td>
-                        {log.entityName} #{log.entityId}
+                      <td className="py-1 small">
+                        {log.entityName} <span className="text-muted">#{log.entityId}</span>
                       </td>
-                      <td>
-                        <code className="small">{log.ip}</code>
+                      <td className="py-1">
+                        <code className="small text-muted">{log.ip}</code>
                       </td>
                     </tr>
                   ))
@@ -288,23 +277,29 @@ const AuditLog = () => {
           </div>
         </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="card-footer bg-light">
-            <div className="d-flex justify-content-between align-items-center">
-              <div>
-                <select
-                  className="form-select form-select-sm"
-                  value={pageSize}
-                  onChange={handlePageSizeChange}
-                  style={{ width: 'auto', display: 'inline-block' }}
-                >
-                  <option value="10">10 per page</option>
-                  <option value="20">20 per page</option>
-                  <option value="50">50 per page</option>
-                  <option value="100">100 per page</option>
-                </select>
-              </div>
+        {/* Pagination - Compact */}
+        <div className="card-footer py-2">
+          <div className="d-flex justify-content-between align-items-center">
+            <div className="d-flex align-items-center gap-2">
+              <span className="text-muted small">Show:</span>
+              <select
+                className="form-control form-control-sm form-select"
+                value={pageSize}
+                onChange={handlePageSizeChange}
+                style={{ width: 'auto' }}
+              >
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+              <span className="text-muted small">entries</span>
+            </div>
+            
+            <div className="d-flex align-items-center gap-2">
+              <span className="text-muted small">
+                Page {currentPage} of {totalPages || 1}
+              </span>
               <nav>
                 <ul className="pagination pagination-sm mb-0">
                   <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
@@ -316,7 +311,7 @@ const AuditLog = () => {
                     </button>
                   </li>
                   
-                  {[...Array(totalPages)].map((_, i) => {
+                  {[...Array(totalPages || 1)].map((_, i) => {
                     const pageNum = i + 1;
                     if (
                       pageNum === 1 ||
@@ -352,7 +347,7 @@ const AuditLog = () => {
               </nav>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

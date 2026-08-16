@@ -24,31 +24,39 @@ public class GetBooksRangeQueryHandler : IRequestHandler<GetBooksRangeQuery, Pag
     {
         Expression<Func<Book, bool>>? filter = null;
 
+        // فیلتر جستجو - اصلاح شده
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            filter = b => b.Title.Contains(request.SearchTerm) || 
-                          b.Author.Contains(request.SearchTerm) || 
-                          b.Publisher.Contains(request.SearchTerm);
+            var searchTerm = request.SearchTerm.Trim().ToLower();
+            filter = b => 
+                b.Title.ToLower().Contains(searchTerm) || 
+                b.Author.ToLower().Contains(searchTerm) || 
+                b.Publisher.ToLower().Contains(searchTerm) ||
+                b.Genre.ToLower().Contains(searchTerm);
         }
 
+        // فیلتر نویسنده
         if (!string.IsNullOrWhiteSpace(request.Author))
         {
             var authorFilter = filter;
             filter = b => (authorFilter == null || authorFilter.Compile()(b)) && b.Author == request.Author;
         }
 
+        // فیلتر ناشر
         if (!string.IsNullOrWhiteSpace(request.Publisher))
         {
             var publisherFilter = filter;
             filter = b => (publisherFilter == null || publisherFilter.Compile()(b)) && b.Publisher == request.Publisher;
         }
 
+        // فیلتر سال انتشار
         if (!string.IsNullOrWhiteSpace(request.PublishedYear))
         {
             var yearFilter = filter;
             filter = b => (yearFilter == null || yearFilter.Compile()(b)) && b.PublishedYear == request.PublishedYear;
         }
 
+        // مرتب‌سازی
         Func<IQueryable<Book>, IOrderedQueryable<Book>>? orderBy = null;
 
         if (!string.IsNullOrWhiteSpace(request.SortColumn))
@@ -73,8 +81,15 @@ public class GetBooksRangeQueryHandler : IRequestHandler<GetBooksRangeQuery, Pag
         }
 
         var skip = (request.Page - 1) * request.PageSize;
+        
+        // اضافه کردن لاگ برای دیباگ
+        Console.WriteLine($"SearchTerm: {request.SearchTerm}");
+        Console.WriteLine($"Skip: {skip}, PageSize: {request.PageSize}");
+        
         var books = await _bookRepository.GetRangeAsync(skip, request.PageSize, filter, orderBy, request.IncludeDeleted);
         var totalCount = await _bookRepository.CountAsync(filter, request.IncludeDeleted);
+        
+        Console.WriteLine($"Books found: {books.Count()}, Total: {totalCount}");
 
         var bookDtos = books.Select(b => new BookDto
         {

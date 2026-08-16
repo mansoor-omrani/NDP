@@ -1,14 +1,19 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import BookService from '../services/BookService';
 import AuthService from '../services/AuthService';
 
 const BookManage = () => {
   const [books, setBooks] = useState([]);
-  const [showForm, setShowForm] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [editingBook, setEditingBook] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  
+  // Toast states
+  const [toast, setToast] = useState({
+    show: false,
+    message: '',
+    type: 'success'
+  });
   
   const user = AuthService.getUser();
   const userRoles = user?.roles || [];
@@ -29,9 +34,28 @@ const BookManage = () => {
     url: ''
   });
 
+  const toastRef = useRef(null);
+
   useEffect(() => {
     loadBooks();
   }, []);
+
+  const showToast = (message, type = 'success') => {
+    setToast({
+      show: true,
+      message,
+      type
+    });
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+      setToast({
+        show: false,
+        message: '',
+        type: 'success'
+      });
+    }, 3000);
+  };
 
   const loadBooks = async () => {
     try {
@@ -39,6 +63,7 @@ const BookManage = () => {
       setBooks(response.data.items || []);
     } catch (err) {
       console.error('Error loading books:', err);
+      showToast('Failed to load books.', 'error');
     }
   };
 
@@ -61,13 +86,11 @@ const BookManage = () => {
       url: ''
     });
     setEditingBook(null);
-    setError('');
-    setSuccess('');
   };
 
   const handleAddNew = () => {
     resetForm();
-    setShowForm(true);
+    setShowModal(true);
   };
 
   const handleEdit = (book) => {
@@ -82,15 +105,16 @@ const BookManage = () => {
       description: book.description || '',
       url: book.url || ''
     });
-    setError('');
-    setSuccess('');
-    setShowForm(true);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    resetForm();
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
     setLoading(true);
 
     try {
@@ -98,20 +122,17 @@ const BookManage = () => {
       
       if (editingBook) {
         await BookService.updateBook(editingBook.bookId, formData, token);
-        setSuccess('Book updated successfully!');
+        showToast('Book updated successfully!', 'success');
       } else {
         await BookService.addBook(formData, token);
-        setSuccess('Book added successfully!');
+        showToast('Book added successfully!', 'success');
       }
       
       loadBooks();
-      setTimeout(() => {
-        setShowForm(false);
-        resetForm();
-      }, 1500);
+      handleCloseModal();
     } catch (err) {
-      setError('Failed to save book. Please try again.');
       console.error('Error saving book:', err);
+      showToast('Failed to save book. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
@@ -122,11 +143,11 @@ const BookManage = () => {
       try {
         const token = AuthService.getToken();
         await BookService.deleteBook(id, token);
-        setSuccess('Book deleted successfully!');
+        showToast('Book deleted successfully!', 'success');
         loadBooks();
       } catch (err) {
-        setError('Failed to delete book.');
         console.error('Error deleting book:', err);
+        showToast('Failed to delete book.', 'error');
       }
     }
   };
@@ -136,11 +157,11 @@ const BookManage = () => {
       try {
         const token = AuthService.getToken();
         await BookService.deletePermanently(id, token);
-        setSuccess('Book permanently deleted!');
+        showToast('Book permanently deleted!', 'success');
         loadBooks();
       } catch (err) {
-        setError('Failed to permanently delete book.');
         console.error('Error permanently deleting book:', err);
+        showToast('Failed to permanently delete book.', 'error');
       }
     }
   };
@@ -150,17 +171,40 @@ const BookManage = () => {
       try {
         const token = AuthService.getToken();
         await BookService.restoreBook(id, token);
-        setSuccess('Book restored successfully!');
+        showToast('Book restored successfully!', 'success');
         loadBooks();
       } catch (err) {
-        setError('Failed to restore book.');
         console.error('Error restoring book:', err);
+        showToast('Failed to restore book.', 'error');
       }
     }
   };
 
   return (
     <div>
+      {/* Toast Notification */}
+      {toast.show && (
+        <div 
+          className={`toast show position-fixed top-0 end-0 m-4 ${toast.type === 'success' ? 'bg-success' : 'bg-danger'}`}
+          style={{ zIndex: 9999 }}
+          role="alert"
+        >
+          <div className="toast-header">
+            <strong className="me-auto">
+              {toast.type === 'success' ? '✅ Success' : '❌ Error'}
+            </strong>
+            <button 
+              type="button" 
+              className="btn-close" 
+              onClick={() => setToast({ show: false, message: '', type: 'success' })}
+            ></button>
+          </div>
+          <div className="toast-body text-white">
+            {toast.message}
+          </div>
+        </div>
+      )}
+
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="text-white fw-bold mb-0">Manage Books</h2>
         {canEdit && (
@@ -169,184 +213,6 @@ const BookManage = () => {
           </button>
         )}
       </div>
-
-      {error && (
-        <div className="alert alert-danger alert-dismissible fade show" role="alert">
-          ⚠️ {error}
-          <button type="button" className="btn-close" onClick={() => setError('')}></button>
-        </div>
-      )}
-
-      {success && (
-        <div className="alert alert-success alert-dismissible fade show" role="alert">
-          ✅ {success}
-          <button type="button" className="btn-close" onClick={() => setSuccess('')}></button>
-        </div>
-      )}
-
-      {showForm && canEdit && (
-        <div className="card mb-4">
-          <div className={`card-header text-white ${editingBook ? 'bg-warning' : 'bg-success'}`}>
-            <h5 className="mb-0">
-              {editingBook ? '✏️ Edit Book' : '📚 Add New Book'}
-            </h5>
-          </div>
-          <div className="card-body p-4">
-            <form onSubmit={handleSubmit}>
-              <div className="row">
-                <div className="col-md-6 mb-3">
-                  <label className="form-label fw-bold">
-                    Title <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="title"
-                    className="form-control"
-                    value={formData.title}
-                    onChange={handleInputChange}
-                    placeholder="Enter book title"
-                    required
-                  />
-                </div>
-                
-                <div className="col-md-6 mb-3">
-                  <label className="form-label fw-bold">
-                    Author <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="author"
-                    className="form-control"
-                    value={formData.author}
-                    onChange={handleInputChange}
-                    placeholder="Enter author name"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="row">
-                <div className="col-md-6 mb-3">
-                  <label className="form-label fw-bold">Publisher</label>
-                  <input
-                    type="text"
-                    name="publisher"
-                    className="form-control"
-                    value={formData.publisher}
-                    onChange={handleInputChange}
-                    placeholder="Enter publisher name"
-                  />
-                </div>
-                
-                <div className="col-md-6 mb-3">
-                  <label className="form-label fw-bold">Published Year</label>
-                  <input
-                    type="text"
-                    name="publishedYear"
-                    className="form-control"
-                    value={formData.publishedYear}
-                    onChange={handleInputChange}
-                    placeholder="e.g., 2024"
-                    maxLength="4"
-                  />
-                </div>
-              </div>
-
-              <div className="row">
-                <div className="col-md-6 mb-3">
-                  <label className="form-label fw-bold">Genre</label>
-                  <select
-                    name="genre"
-                    className="form-select"
-                    value={formData.genre}
-                    onChange={handleInputChange}
-                  >
-                    <option value="">Select genre...</option>
-                    <option value="Fiction">Fiction</option>
-                    <option value="Non-Fiction">Non-Fiction</option>
-                    <option value="Mystery">Mystery</option>
-                    <option value="Thriller">Thriller</option>
-                    <option value="Romance">Romance</option>
-                    <option value="Science Fiction">Science Fiction</option>
-                    <option value="Fantasy">Fantasy</option>
-                    <option value="Biography">Biography</option>
-                    <option value="History">History</option>
-                    <option value="Science">Science</option>
-                    <option value="Technology">Technology</option>
-                    <option value="Self-Help">Self-Help</option>
-                    <option value="Poetry">Poetry</option>
-                    <option value="Drama">Drama</option>
-                    <option value="Children">Children</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                
-                <div className="col-md-6 mb-3">
-                  <label className="form-label fw-bold">Photo URL</label>
-                  <input
-                    type="url"
-                    name="photo"
-                    className="form-control"
-                    value={formData.photo}
-                    onChange={handleInputChange}
-                    placeholder="https://example.com/book-cover.jpg"
-                  />
-                </div>
-              </div>
-
-              <div className="mb-3">
-                <label className="form-label fw-bold">Book URL</label>
-                <input
-                  type="url"
-                  name="url"
-                  className="form-control"
-                  value={formData.url}
-                  onChange={handleInputChange}
-                  placeholder="https://example.com/book-details"
-                />
-              </div>
-
-              <div className="mb-4">
-                <label className="form-label fw-bold">Description</label>
-                <textarea
-                  name="description"
-                  className="form-control"
-                  rows="4"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  placeholder="Enter book description..."
-                ></textarea>
-              </div>
-
-              <div className="d-flex gap-2">
-                <button
-                  type="submit"
-                  className={`btn ${editingBook ? 'btn-warning' : 'btn-success'} btn-lg px-5`}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                      Saving...
-                    </>
-                  ) : editingBook ? (
-                    '✏️ Update Book'
-                  ) : (
-                    '➕ Add Book'
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-lg px-5"
-                  onClick={() => setShowForm(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       <div className="card">
         <div className="card-body p-0">
@@ -368,8 +234,7 @@ const BookManage = () => {
                 {books.map((book) => (
                   <tr 
                     key={book.bookId} 
-                    className={book.isDeleted ? 'table-danger opacity-75' : ''}
-                    style={book.isDeleted ? { backgroundColor: '#ffe6e6' } : {}}
+                    style={book.isDeleted ? { backgroundColor: '#ffe6e6', opacity: '0.8' } : {}}
                   >
                     <td className="px-4">{book.bookId}</td>
                     <td className="fw-bold">
@@ -441,6 +306,182 @@ const BookManage = () => {
           </div>
         </div>
       </div>
+
+      {/* Book Form Modal */}
+      {showModal && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div className="modal-content">
+              <div className={`modal-header text-white ${editingBook ? 'bg-warning' : 'bg-success'}`}>
+                <h5 className="modal-title">
+                  {editingBook ? '✏️ Edit Book' : '📚 Add New Book'}
+                </h5>
+                <button 
+                  type="button" 
+                  className="btn-close btn-close-white" 
+                  onClick={handleCloseModal}
+                ></button>
+              </div>
+              
+              <div className="modal-body p-4">
+                <form onSubmit={handleSubmit}>
+                  <div className="row">
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label fw-bold">
+                        Title <span className="text-danger">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="title"
+                        className="form-control"
+                        value={formData.title}
+                        onChange={handleInputChange}
+                        placeholder="Enter book title"
+                        required
+                      />
+                    </div>
+                    
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label fw-bold">
+                        Author <span className="text-danger">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="author"
+                        className="form-control"
+                        value={formData.author}
+                        onChange={handleInputChange}
+                        placeholder="Enter author name"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="row">
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label fw-bold">Publisher</label>
+                      <input
+                        type="text"
+                        name="publisher"
+                        className="form-control"
+                        value={formData.publisher}
+                        onChange={handleInputChange}
+                        placeholder="Enter publisher name"
+                      />
+                    </div>
+                    
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label fw-bold">Published Year</label>
+                      <input
+                        type="text"
+                        name="publishedYear"
+                        className="form-control"
+                        value={formData.publishedYear}
+                        onChange={handleInputChange}
+                        placeholder="e.g., 2024"
+                        maxLength="4"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="row">
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label fw-bold">Genre</label>
+                      <select
+                        name="genre"
+                        className="form-select"
+                        value={formData.genre}
+                        onChange={handleInputChange}
+                      >
+                        <option value="">Select genre...</option>
+                        <option value="Fiction">Fiction</option>
+                        <option value="Non-Fiction">Non-Fiction</option>
+                        <option value="Mystery">Mystery</option>
+                        <option value="Thriller">Thriller</option>
+                        <option value="Romance">Romance</option>
+                        <option value="Science Fiction">Science Fiction</option>
+                        <option value="Fantasy">Fantasy</option>
+                        <option value="Biography">Biography</option>
+                        <option value="History">History</option>
+                        <option value="Science">Science</option>
+                        <option value="Technology">Technology</option>
+                        <option value="Self-Help">Self-Help</option>
+                        <option value="Poetry">Poetry</option>
+                        <option value="Drama">Drama</option>
+                        <option value="Children">Children</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label fw-bold">Photo URL</label>
+                      <input
+                        type="url"
+                        name="photo"
+                        className="form-control"
+                        value={formData.photo}
+                        onChange={handleInputChange}
+                        placeholder="https://example.com/book-cover.jpg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">Book URL</label>
+                    <input
+                      type="url"
+                      name="url"
+                      className="form-control"
+                      value={formData.url}
+                      onChange={handleInputChange}
+                      placeholder="https://example.com/book-details"
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="form-label fw-bold">Description</label>
+                    <textarea
+                      name="description"
+                      className="form-control"
+                      rows="4"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      placeholder="Enter book description..."
+                    ></textarea>
+                  </div>
+                </form>
+              </div>
+              
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={handleCloseModal}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className={`btn ${editingBook ? 'btn-warning' : 'btn-success'}`}
+                  onClick={handleSubmit}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                      Saving...
+                    </>
+                  ) : editingBook ? (
+                    '✏️ Update Book'
+                  ) : (
+                    '➕ Add Book'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
