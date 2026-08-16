@@ -2,9 +2,10 @@
 import API_URL from '../config';
 
 const BookService = {
-  getBooks(page = 1, pageSize = 12, searchTerm = '') {
+  getBooks(page = 1, pageSize = 12, searchTerm = '', includeDeleted = false) {
     const params = { page, pageSize };
     if (searchTerm) params.searchTerm = searchTerm;
+    if (includeDeleted) params.includeDeleted = true;
     return axios.get(`${API_URL}/books`, { params });
   },
 
@@ -26,6 +27,12 @@ const BookService = {
 
   deleteBook(id, token) {
     return axios.delete(`${API_URL}/books/${id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  },
+
+  deletePermanently(id, token) {
+    return axios.delete(`${API_URL}/books/${id}/permanent`, {
       headers: { Authorization: `Bearer ${token}` }
     });
   },

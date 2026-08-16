@@ -128,12 +128,11 @@ builder.Services.AddHitsModule(builder.Configuration);
 
 var app = builder.Build();
 
-// Swagger در root
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "NDP API V1");
-    c.RoutePrefix = ""; // خالی - نمایش در root
+    c.RoutePrefix = "";
 });
 
 app.MapGet("/", () => Results.Redirect("/swagger"));
@@ -149,36 +148,54 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Database initialization with Seeder
 try
 {
+    Log.Information("Starting database initialization...");
+    
     using var scope = app.Services.CreateScope();
     
-    // ایجاد دیتابیس‌ها
+    Log.Information("Ensuring Books database exists...");
     var booksDb = scope.ServiceProvider.GetRequiredService<NDP.Books.Infrastructure.Persistence.BooksDbContext>();
     booksDb.Database.EnsureCreated();
-    
+    Log.Information("Books database ready.");
+
+    Log.Information("Ensuring Identity database exists...");
     var identityDb = scope.ServiceProvider.GetRequiredService<NDP.Identity.Infrastructure.Persistence.IdentityDbContext>();
     identityDb.Database.EnsureCreated();
-    
+    Log.Information("Identity database ready.");
+
+    Log.Information("Ensuring Audits database exists...");
     var auditsDb = scope.ServiceProvider.GetRequiredService<NDP.Audits.Infrastructure.Persistence.AuditsDbContext>();
     auditsDb.Database.EnsureCreated();
-    
+    Log.Information("Audits database ready.");
+
+    Log.Information("Ensuring Hits database exists...");
     var hitsDb = scope.ServiceProvider.GetRequiredService<NDP.Hits.Infrastructure.Persistence.HitsDbContext>();
     hitsDb.Database.EnsureCreated();
+    Log.Information("Hits database ready.");
     
-    Console.WriteLine("Database initialization completed.");
-    Console.WriteLine("Running database seeder...");
+    Log.Information("Database initialization completed successfully.");
     
-    // اجرای DatabaseSeeder
+    Log.Information("Running database seeder...");
     await DatabaseSeeder.SeedAsync(app.Services);
-    
-    Console.WriteLine("Database seeding completed.");
+    Log.Information("Database seeding completed successfully.");
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"Database initialization error: {ex.Message}");
-    Console.WriteLine($"Stack trace: {ex.StackTrace}");
+    Log.Fatal(ex, "Database initialization failed: {ErrorMessage}", ex.Message);
+    Log.Fatal(ex, "Stack trace: {StackTrace}", ex.StackTrace);
 }
 
-app.Run();
+try
+{
+    Log.Information("Starting NDP API...");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly: {ErrorMessage}", ex.Message);
+}
+finally
+{
+    Log.CloseAndFlush();
+}

@@ -1,5 +1,4 @@
 ﻿using System.Security.Claims;
-using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -73,6 +72,7 @@ public class BooksController : ControllerBase
         return NoContent();
     }
 
+    // حذف منطقی - برای Administrator، Manager
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Administrator,Manager")]
     public async Task<IActionResult> Remove(int id)
@@ -83,6 +83,7 @@ public class BooksController : ControllerBase
         return NoContent();
     }
 
+    // احیای کتاب - فقط برای Administrator
     [HttpPatch("{id:int}/restore")]
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Restore(int id)
@@ -93,6 +94,7 @@ public class BooksController : ControllerBase
         return NoContent();
     }
 
+    // حذف دائمی - فقط برای Administrator
     [HttpDelete("{id:int}/permanent")]
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> DeletePermanently(int id)

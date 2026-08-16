@@ -10,6 +10,14 @@ const BookManage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
+  const user = AuthService.getUser();
+  const userRoles = user?.roles || [];
+  const isAdmin = userRoles.includes('Administrator');
+  const isManager = userRoles.includes('Manager');
+  const isOperator = userRoles.includes('Operator');
+  const canEdit = isAdmin || isManager || isOperator;
+  const canDelete = isAdmin || isManager;
+  
   const [formData, setFormData] = useState({
     title: '',
     author: '',
@@ -27,7 +35,7 @@ const BookManage = () => {
 
   const loadBooks = async () => {
     try {
-      const response = await BookService.getBooks(1, 100);
+      const response = await BookService.getBooks(1, 100, '', true);
       setBooks(response.data.items || []);
     } catch (err) {
       console.error('Error loading books:', err);
@@ -110,24 +118,44 @@ const BookManage = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this book?')) {
+    if (window.confirm('Are you sure you want to delete this book? (Soft Delete)')) {
       try {
         const token = AuthService.getToken();
         await BookService.deleteBook(id, token);
+        setSuccess('Book deleted successfully!');
         loadBooks();
       } catch (err) {
+        setError('Failed to delete book.');
         console.error('Error deleting book:', err);
       }
     }
   };
 
+  const handlePermanentDelete = async (id) => {
+    if (window.confirm('⚠️ Are you sure you want to PERMANENTLY delete this book? This action cannot be undone!')) {
+      try {
+        const token = AuthService.getToken();
+        await BookService.deletePermanently(id, token);
+        setSuccess('Book permanently deleted!');
+        loadBooks();
+      } catch (err) {
+        setError('Failed to permanently delete book.');
+        console.error('Error permanently deleting book:', err);
+      }
+    }
+  };
+
   const handleRestore = async (id) => {
-    try {
-      const token = AuthService.getToken();
-      await BookService.restoreBook(id, token);
-      loadBooks();
-    } catch (err) {
-      console.error('Error restoring book:', err);
+    if (window.confirm('Are you sure you want to restore this book?')) {
+      try {
+        const token = AuthService.getToken();
+        await BookService.restoreBook(id, token);
+        setSuccess('Book restored successfully!');
+        loadBooks();
+      } catch (err) {
+        setError('Failed to restore book.');
+        console.error('Error restoring book:', err);
+      }
     }
   };
 
@@ -135,12 +163,28 @@ const BookManage = () => {
     <div>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="text-white fw-bold mb-0">Manage Books</h2>
-        <button onClick={handleAddNew} className="btn btn-light btn-lg rounded-pill px-4">
-          <span className="me-2">➕</span> Add New Book
-        </button>
+        {canEdit && (
+          <button onClick={handleAddNew} className="btn btn-light btn-lg rounded-pill px-4">
+            <span className="me-2">➕</span> Add New Book
+          </button>
+        )}
       </div>
 
-      {showForm && (
+      {error && (
+        <div className="alert alert-danger alert-dismissible fade show" role="alert">
+          ⚠️ {error}
+          <button type="button" className="btn-close" onClick={() => setError('')}></button>
+        </div>
+      )}
+
+      {success && (
+        <div className="alert alert-success alert-dismissible fade show" role="alert">
+          ✅ {success}
+          <button type="button" className="btn-close" onClick={() => setSuccess('')}></button>
+        </div>
+      )}
+
+      {showForm && canEdit && (
         <div className="card mb-4">
           <div className={`card-header text-white ${editingBook ? 'bg-warning' : 'bg-success'}`}>
             <h5 className="mb-0">
@@ -148,20 +192,6 @@ const BookManage = () => {
             </h5>
           </div>
           <div className="card-body p-4">
-            {error && (
-              <div className="alert alert-danger alert-dismissible fade show" role="alert">
-                ⚠️ {error}
-                <button type="button" className="btn-close" onClick={() => setError('')}></button>
-              </div>
-            )}
-            
-            {success && (
-              <div className="alert alert-success alert-dismissible fade show" role="alert">
-                ✅ {success}
-                <button type="button" className="btn-close" onClick={() => setSuccess('')}></button>
-              </div>
-            )}
-
             <form onSubmit={handleSubmit}>
               <div className="row">
                 <div className="col-md-6 mb-3">
@@ -323,7 +353,7 @@ const BookManage = () => {
           <div className="table-responsive">
             <table className="table table-hover mb-0">
               <thead>
-                <tr>
+                <tr className="table-dark">
                   <th className="px-4">ID</th>
                   <th>Title</th>
                   <th>Author</th>
@@ -336,9 +366,18 @@ const BookManage = () => {
               </thead>
               <tbody>
                 {books.map((book) => (
-                  <tr key={book.bookId} className={book.isDeleted ? 'table-danger' : ''}>
+                  <tr 
+                    key={book.bookId} 
+                    className={book.isDeleted ? 'table-danger opacity-75' : ''}
+                    style={book.isDeleted ? { backgroundColor: '#ffe6e6' } : {}}
+                  >
                     <td className="px-4">{book.bookId}</td>
-                    <td className="fw-bold">{book.title}</td>
+                    <td className="fw-bold">
+                      {book.title}
+                      {book.isDeleted && (
+                        <span className="ms-2 badge bg-danger">Deleted</span>
+                      )}
+                    </td>
                     <td>{book.author}</td>
                     <td>{book.publisher || '-'}</td>
                     <td>{book.publishedYear || '-'}</td>
@@ -347,38 +386,52 @@ const BookManage = () => {
                     </td>
                     <td>
                       {book.isDeleted ? (
-                        <span className="badge bg-danger">Deleted</span>
+                        <span className="badge bg-danger">Soft Deleted</span>
                       ) : (
                         <span className="badge bg-success">Active</span>
                       )}
                     </td>
                     <td className="text-end px-4">
-                      {!book.isDeleted && (
+                      {!book.isDeleted ? (
                         <>
-                          <button
-                            onClick={() => handleEdit(book)}
-                            className="btn btn-sm btn-outline-primary me-1"
-                            title="Edit"
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            onClick={() => handleDelete(book.bookId)}
-                            className="btn btn-sm btn-outline-danger me-1"
-                            title="Delete"
-                          >
-                            🗑️
-                          </button>
+                          {canEdit && (
+                            <button
+                              onClick={() => handleEdit(book)}
+                              className="btn btn-sm btn-outline-primary me-1"
+                              title="Edit"
+                            >
+                              ✏️
+                            </button>
+                          )}
+                          {canDelete && (
+                            <button
+                              onClick={() => handleDelete(book.bookId)}
+                              className="btn btn-sm btn-outline-danger me-1"
+                              title="Soft Delete"
+                            >
+                              🗑️
+                            </button>
+                          )}
+                          {isAdmin && (
+                            <button
+                              onClick={() => handlePermanentDelete(book.bookId)}
+                              className="btn btn-sm btn-outline-dark"
+                              title="Permanent Delete"
+                            >
+                              ⛔
+                            </button>
+                          )}
                         </>
-                      )}
-                      {book.isDeleted && (
-                        <button
-                          onClick={() => handleRestore(book.bookId)}
-                          className="btn btn-sm btn-outline-success"
-                          title="Restore"
-                        >
-                          ♻️
-                        </button>
+                      ) : (
+                        isAdmin && (
+                          <button
+                            onClick={() => handleRestore(book.bookId)}
+                            className="btn btn-sm btn-outline-success"
+                            title="Restore"
+                          >
+                            ♻️ Restore
+                          </button>
+                        )
                       )}
                     </td>
                   </tr>
